@@ -56,21 +56,6 @@ def scan(host):
 
 
 if __name__ == '__main__':
-    print(os.getcwd())
-    print(os.listdir())
-    print(os.chdir(".."))
-    print(1111111111111)
-    print(os.getcwd())
-    print(os.listdir())
-    print(os.chdir(".."))
-    print(1111111111111)
-    print(os.getcwd())
-    print(os.listdir())
-    print(os.chdir(".."))
-    print(1111111111111)
-    print(os.getcwd())
-    print(os.listdir())
-
     output: str = console.args.output
     target: str = console.args.target
     targets = [target]
@@ -88,7 +73,7 @@ if __name__ == '__main__':
     else:
         scripts.ping(targets, silent=True)
     console.output(LOG, "preformed in-memory save for online targets")
-    print(plugins.loader.loaded)
+
     for plugin in plugins.loader.loaded:
         channel = multitask.Channel(plugin.name)
         channels.update({
