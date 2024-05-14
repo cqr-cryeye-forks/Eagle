@@ -75,11 +75,12 @@ if __name__ == '__main__':
     console.output(LOG, "preformed in-memory save for online targets")
 
     for plugin in plugins.loader.loaded:
+        print(111)
         channel = multitask.Channel(plugin.name)
         channels.update({
             plugin: channel
         })
-
+        print(222)
         multitask.workers(
             target=plugin.main,
             channel=channel,
