@@ -1,23 +1,24 @@
 from collections import namedtuple
+
 from colorama import Fore
 from colorama import init
 
-ERROR   = 0
+ERROR = 0
 SUCCESS = 1
-FAILED  = 2
+FAILED = 2
 WARNING = 3
 UNKNOWN = 4
-INFO    = 5
-LOG     = 6
+INFO = 5
+LOG = 6
 
 s2s = {
-    ERROR:   'error',
+    ERROR: 'error',
     SUCCESS: 'success',
-    FAILED:  'failed',
+    FAILED: 'failed',
     WARNING: 'warning',
     UNKNOWN: 'unknown',
-    INFO:    'info',
-    LOG:     'logging'
+    INFO: 'info',
+    LOG: 'logging'
 }
 s2c = {
     ERROR: Fore.RED,
@@ -30,4 +31,4 @@ s2c = {
 }
 
 init(autoreset=True)
-Result = namedtuple("Result","status msg request response")
+Result = namedtuple("Result", "status msg request response")
