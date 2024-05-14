@@ -1,5 +1,10 @@
+import json
 import os
+import pathlib
 import sys
+import time
+from typing import Final
+
 from utils.db import JsonDB
 from utils.status import *
 import utils.multitask as multitask
@@ -9,17 +14,6 @@ import plugins
 import scripts
 import signal
 
-targets = [x.strip() for x in open(console.args.file, "r").readlines() if x.strip()]
-dir_target = os.path.dirname(os.path.realpath(console.args.file))
-
-os.chdir(sys.path[0])
-
-
-console.banner(len(plugins.loader.loaded))
-os.chdir(dir_target)
-channels = {}
-db = JsonDB(console.args.db)
-
 
 def onexit(sig, frame):
     for plugin in plugins.loader.loaded:
@@ -27,7 +21,7 @@ def onexit(sig, frame):
             channels[plugin].close()
         except:
             pass
-    os._exit(0)
+    exit(0)
 
 
 def dbsave(result):
@@ -37,16 +31,19 @@ def dbsave(result):
     if result.ret == None: return
 
     console.pprint(result)
-    if name not in db.data: db.data[name] = {}
 
-    db.data[name].update({
-        host: {
+    data1 = {
+        "name": name,
+        "host": {
             'status': res.status,
             'msg': res.msg,
             'response': data.compress(res.response),
             'request': data.compress(res.request)
+
         }
-    })
+    }
+
+    data2.append(data1)
 
     db.save()
 
@@ -58,37 +55,49 @@ def scan(host):
         channels[plugin].append(host)
 
 
-signal.signal(signal.SIGINT, onexit)
-console.output(LOG, "checking live targets")
-if console.args.ping:
-    scripts.ping(targets, silent=False)
-else:
-    scripts.ping(targets, silent=True)
-console.output(LOG, "preformed in-memory save for online targets")
+if __name__ == '__main__':
+    output: str = console.args.output
+    target: str = console.args.target
+    targets = [target]
 
-for plugin in plugins.loader.loaded:
-    channel = multitask.Channel(plugin.name)
-    channels.update({
-        plugin: channel
-    })
-    multitask.workers(
-        target=plugin.main,
-        channel=channel,
-        count=console.args.workers,
-        callback=dbsave
-    )
+    MAIN_DIR: Final[pathlib.Path] = pathlib.Path(__file__).parent
+    json_output: Final[pathlib.Path] = MAIN_DIR / output
+    data2 = []
+    channels = {}
+    db = JsonDB(json_output, data2)
 
-queue = multitask.Channel('scan-queue')
-multitask.workers(target=scan, channel=queue, count=console.args.workers)
+    signal.signal(signal.SIGINT, onexit)
+    console.output(LOG, "checking live targets")
+    if console.args.ping:
+        scripts.ping(targets, silent=False)
+    else:
+        scripts.ping(targets, silent=True)
+    console.output(LOG, "preformed in-memory save for online targets")
 
-for target in targets:
-    queue.append(target)
+    for plugin in plugins.loader.loaded:
+        channel = multitask.Channel(plugin.name)
+        channels.update({
+            plugin: channel
+        })
 
-queue.wait()
-queue.close()
+        multitask.workers(
+            target=plugin.main,
+            channel=channel,
+            count=console.args.workers,
+            callback=dbsave
+        )
 
-for plugin in plugins.loader.loaded:
-    channels[plugin].wait()
+    queue = multitask.Channel('scan-queue')
+    multitask.workers(target=scan, channel=queue, count=console.args.workers)
 
-for plugin in plugins.loader.loaded:
-    channels[plugin].close()
+    for target in targets:
+        queue.append(target)
+
+    queue.wait()
+    queue.close()
+
+    for plugin in plugins.loader.loaded:
+        channels[plugin].wait()
+
+    for plugin in plugins.loader.loaded:
+        channels[plugin].close()

@@ -3,13 +3,14 @@ import os
 import sys
 import threading
 
+
 class JsonDB():
-    def __init__(self,name):
-        if not os.path.isfile(name): open(name,"w").write("{}")
-        self.data = json.loads(open(name,'r').read())
-        self.__lock = threading.Lock()
-        self.__name = name
+    def __init__(self, name, data):
+        # if not os.path.isfile(name): open(name, "w").write("{}")
+        self.lock = threading.Lock()
+        self.name = name
+        self.data = data
 
     def save(self):
-        with self.__lock:
-            open(self.__name,"w").write(json.dumps(self.data))
+        with self.lock:
+            open(self.name, "w").write(json.dumps(self.data))
