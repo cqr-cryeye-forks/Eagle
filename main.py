@@ -21,7 +21,7 @@ def onexit(sig, frame):
             channels[plugin].close()
         except:
             pass
-    exit(0)
+    # exit(0)
 
 
 def dbsave(result):
