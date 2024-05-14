@@ -73,7 +73,7 @@ if __name__ == '__main__':
     else:
         scripts.ping(targets, silent=True)
     console.output(LOG, "preformed in-memory save for online targets")
-
+    print(plugins.loader.loaded)
     for plugin in plugins.loader.loaded:
         print(111)
         channel = multitask.Channel(plugin.name)
